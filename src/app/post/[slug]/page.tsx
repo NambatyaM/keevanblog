@@ -155,18 +155,36 @@ export default async function PostPage({ params }: Params) {
             />
           )}
 
+          <details className="mb-8 rounded-lg border bg-muted/30 p-4">
+            <summary className="cursor-pointer text-sm font-semibold text-muted-foreground hover:text-foreground">
+              Table of Contents
+            </summary>
+            <nav className="mt-3 space-y-1 text-sm">
+              {articleHtml.match(/<h2[^>]*id="([^"]*)"[^>]*>([^<]+)<\/h2>/g)?.map((h) => {
+                const id = h.match(/id="([^"]*)"/)?.[1] || '';
+                const text = h.replace(/<[^>]*>/g, '');
+                return (
+                  <a key={id} href={`#${id}`} className="block text-muted-foreground hover:text-primary">
+                    {text}
+                  </a>
+                );
+              })}
+            </nav>
+          </details>
+
           <div
             className="prose prose-lg max-w-none dark:prose-invert
               prose-headings:scroll-mt-24 prose-headings:font-bold prose-headings:tracking-tight
-              prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-foreground
+              prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-foreground prose-h2:border-b prose-h2:pb-2
               prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-h3:text-foreground
               prose-p:leading-relaxed prose-p:text-foreground/90
               prose-a:text-primary prose-a:no-underline hover:prose-a:underline
               prose-strong:text-foreground prose-strong:font-semibold
-              prose-ul:my-4 prose-ol:my-4 prose-li:my-1 prose-li:text-foreground/90
-              prose-blockquote:border-l-primary prose-blockquote:bg-muted/40 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r
+              prose-ul:my-4 prose-ol:my-4 prose-li:my-1.5 prose-li:text-foreground/90
+              prose-blockquote:border-l-[4px] prose-blockquote:border-primary prose-blockquote:bg-primary/5 prose-blockquote:py-3 prose-blockquote:px-5 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
               prose-code:bg-muted prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-code:text-sm prose-code:before:content-none prose-code:after:content-none
-              prose-hr:my-8 prose-hr:border-border"
+              prose-hr:my-8 prose-hr:border-border
+              prose-ol:list-decimal prose-ul:list-disc"
             dangerouslySetInnerHTML={{ __html: articleHtml }}
           />
 

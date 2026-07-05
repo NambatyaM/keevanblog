@@ -51,25 +51,34 @@ export async function POST(req: NextRequest) {
 /**
  * Vercel Cron handler.
  *
- * Vercel Cron sends GET requests with no auth header. To prevent abuse,
- * we only run if the request includes `?source=cron`. We also return 200
- * immediately and run the generation async — Vercel Hobby's 60s cron
- * timeout would otherwise kill the request mid-generation.
+ * Vercel Cron sends GET requests. To prevent abuse:
+ * 1. Requires `?source=cron` query param in production
+ * 2. If CRON_SECRET is set, validates Bearer token from Authorization header
+ *    (configure in Vercel Dashboard → Settings → Cron Jobs → "Protect with Bearer token")
  *
- * For production security, also configure the cron route in Vercel project
- * settings → Settings → Cron Jobs → "Protect with a Bearer token".
+ * We return 200 immediately and run the generation async — Vercel Hobby's 60s
+ * cron timeout would otherwise kill the request mid-generation.
  */
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const source = searchParams.get('source');
 
-  // Only allow cron-triggered GETs (and local manual GETs without source for testing)
-  // Vercel Cron will always include ?source=cron (configured in vercel.json)
+  // Only allow cron-triggered GETs in production
   if (source !== 'cron' && process.env.NODE_ENV === 'production') {
     return NextResponse.json(
       { error: 'GET requests require ?source=cron in production' },
       { status: 403 }
     );
+  }
+
+  // Validate CRON_SECRET if configured (Vercel's "Protect with Bearer token")
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = req.headers.get('authorization') || '';
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    if (token !== cronSecret) {
+      return NextResponse.json({ error: 'Invalid cron secret' }, { status: 401 });
+    }
   }
 
   try {

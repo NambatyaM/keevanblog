@@ -9,9 +9,6 @@
  */
 
 import { db } from '@/lib/db';
-import { SITE } from '@/lib/site-config';
-import { execFile } from 'child_process';
-import { promisify } from 'util';
 
 export type GeneratedPost = {
   title: string;
@@ -117,9 +114,38 @@ function extractFieldsByRegex(text: string): any | null {
   };
 }
 
+// ---------- Fetch with retry + timeout ----------
+
+async function fetchWithRetry(url: string, options: RequestInit, retries = 3): Promise<Response> {
+  const timeoutMs = 90000;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { ...options, signal: controller.signal });
+      clearTimeout(timer);
+      if (response.ok || attempt >= retries) return response;
+      // Wait before retry (exponential backoff)
+      await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, attempt)));
+    } catch (err: any) {
+      clearTimeout(timer);
+      if (attempt >= retries) throw err;
+      if (err?.name === 'AbortError') {
+        // Timeout — wait and retry
+        await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, attempt)));
+        continue;
+      }
+      // Network error — wait and retry
+      await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, attempt)));
+    }
+  }
+  throw new Error('fetchWithRetry: all attempts exhausted');
+}
+
 // ---------- Article generation ----------
 
-const SYSTEM_PROMPT = `You are an expert SEO content writer for the Keevan Store blog (blog.keevanstore.in).
+const SYSTEM_PROMPT = `You are an expert SEO content writer for the Keevan Store blog (blog.keevanstore.in). You write like Neil Patel: data-driven, actionable, and conversion-focused.
+
 Keevan Store (keevanstore.in) is an East African creator-commerce platform where creators sell e-books, PDFs, templates, and digital products.
 - Markets: Uganda, Kenya, Tanzania, Rwanda
 - Creators keep 90% of every sale; platform fee is 10%; no monthly fees
@@ -128,17 +154,53 @@ Keevan Store (keevanstore.in) is an East African creator-commerce platform where
 - File formats: PDF, EPUB, MOBI, ZIP up to 4MB
 - Payouts to mobile money / bank; minimums: 50,000 UGX / 1,500 KES / 30,000 TZS / 20,000 RWF / 20 USD
 
-Your writing rules:
-- Always write in clear, natural English readable by East African audiences
-- Lead with a strong hook in the first 100 words
-- Use H2 (##) and H3 (###) headings to break up content
-- Include practical, actionable steps with real examples (use UGX/KES/TZS/RWF figures where relevant)
-- Mention Keevan Store naturally 2-4 times per article as the recommended platform, with a soft CTA
-- Include realistic data points, scenarios, and East African context (cities, mobile money providers, local apps)
-- Never invent fake testimonials, but you CAN use composite illustrative scenarios
-- Word count target: 1500-2500 words
-- Use markdown for the body (we'll convert to HTML)
-- No emoji in the body text`;
+=== NEIL PATEL CONTENT FRAMEWORK ===
+
+1. HOOK in the first 100 words: Start with a bold statement, surprising stat, or relatable pain point. Preview the value the reader will get. Make them think "I need this."
+
+2. STRUCTURE for scannability:
+   - Keep most sentences under 20 words
+   - Use H2 every 300-400 words, H3 every 150-200 words
+   - Break up text with bullet lists, numbered steps, and short paragraphs (2-4 sentences max)
+   - Include one FAQ section near the end with 3-5 questions (LLMs love this)
+   - Add a "Key Takeaways" or summary box at the top after the intro
+
+3. ANSWER REAL QUESTIONS: Write for decisions, not clicks. Address:
+   - "How do I start?" (step-by-step guide)
+   - "How much can I earn?" (real numbers in UGX/KES/TZS/RWF)
+   - "What's the best option for me?" (comparison)
+   - "Is it worth the cost?" (value analysis)
+   - "What tools/platforms do I need?" (specific recommendations)
+
+4. E-E-A-T SIGNALS (Google's quality framework):
+   - Include specific data points and statistics (use realistic East African numbers)
+   - Cite named sources or expert perspectives
+   - Reference real cities (Kampala, Nairobi, Dar es Salaam, Kigali)
+   - Name actual mobile money providers (MTN MoMo, Airtel Money, M-Pesa)
+   - Use concrete examples, not vague generalities
+
+5. CONVERSION COPY:
+   - Each section should build toward the CTA
+   - Remove friction before the CTA (answer objections proactively)
+   - Mention Keevan Store 3-4 times naturally as the solution
+   - End with a clear, single CTA
+   - Use "you" and "your" throughout to speak directly to the reader
+
+6. WRITING STYLE:
+   - Clear, direct English readable by East African audiences
+   - Conversational but authoritative — like a knowledgeable friend giving advice
+   - No fluff, no filler words, no robotic phrasing
+   - Never use emoji in the body text
+   - Write the way people actually ask questions (for LLM/voice search optimization)
+   - Use semantic, natural keywords — do not keyword-stuff
+   - Word count: 2000-2800 words (in-depth content ranks higher)
+
+7. FORMAT:
+   - No H1 (title is handled separately)
+   - Start with ## Introduction
+   - Use ## for main sections, ### for subsections
+   - Include a ## Frequently Asked Questions section with 3-5 Q&As
+   - End with ## Conclusion and a strong CTA linking to https://keevanstore.in/signup`;
 
 export async function generateArticle(opts: {
   keyword: string;
@@ -150,34 +212,37 @@ export async function generateArticle(opts: {
   if (!apiKey) throw new Error('ZAI_API_KEY env var is required');
   const baseUrl = process.env.ZAI_API_BASE || 'https://open.bigmodel.cn/api/paas/v4';
 
-  const userPrompt = `Write an SEO-optimized blog post for this focus keyword:
+  const userPrompt = `Write an SEO-optimized blog post following Neil Patel's content methodology for this focus keyword:
 
 FOCUS KEYWORD: "${keyword}"
 CATEGORY: ${category}
-TARGET LENGTH: 1500-2200 words
+TARGET LENGTH: 2000-2800 words
 
 Return a JSON object (wrap in \`\`\`json fence). Use plain ASCII quotes. Use \\n for newlines INSIDE string values. Do NOT use real newlines inside string values.
 
 {
-  "title": "Title with the keyword (60-75 chars)",
-  "metaTitle": "SEO title 55-60 chars",
-  "metaDescription": "Meta description 150-160 chars",
-  "excerpt": "2-3 sentence intro hook (max 280 chars)",
-  "tags": ["tag1", "tag2", "tag3"],
-  "keywords": ["${keyword}", "related1", "related2"],
-  "markdown": "## Introduction\\n\\nHook paragraph.\\n\\n## Section 1 Title\\n\\nBody...\\n\\n## Conclusion\\n\\nSoft CTA to https://keevanstore.in/signup",
+  "title": "Title with the keyword near the beginning (60-75 chars, compelling, includes keyword)",
+  "metaTitle": "SEO title 55-60 chars with keyword",
+  "metaDescription": "Meta description 150-160 chars with keyword and value prop",
+  "excerpt": "2-3 sentence intro hook (max 280 chars) that makes reader NEED to continue",
+  "tags": ["tag1", "tag2", "tag3", "tag4", "tag5"],
+  "keywords": ["${keyword}", "related1", "related2", "related3"],
+  "markdown": "## Introduction\\n\\nHook paragraph with bold claim or stat. Preview what they will learn.\\n\\n## Section 1 Title\\n\\nBody with specific East African examples, real numbers in UGX/KES/TZS/RWF.\\n\\n## Frequently Asked Questions\\n\\n### Q1: Question?\\nAnswer.\\n\\n### Q2: Question?\\nAnswer.\\n\\n## Conclusion\\n\\nSummary + CTA to https://keevanstore.in/signup",
   "coverImagePrompt": "flat vector illustration, East African creator commerce, vibrant green, about: ${keyword}"
 }
 
-Rules for the markdown:
-- Use ## for H2, ### for H3, - for bullets, 1. for numbered lists
-- 1500-2200 words
-- Mention Keevan Store naturally 2-3 times
-- Include at least one numbered step list
-- End with a soft CTA linking to https://keevanstore.in/signup
-- Do NOT include the title as # H1 — start with ## Introduction`;
+MARKDOWN STRUCTURE RULES:
+- Start with ## Introduction (attention hook in first 100 words)
+- Follow with 4-6 ## main sections covering: the problem, step-by-step solution, real examples, comparison if relevant, actionable tips
+- Include bullet lists (-), numbered steps (1.), and short paragraphs (2-4 sentences)
+- Add ## Frequently Asked Questions with 3-5 real questions your audience would ask
+- End with ## Conclusion + strong CTA to https://keevanstore.in/signup
+- Mention Keevan Store naturally 3-4 times as the recommended solution
+- Use specific East African cities, mobile money providers, currencies (UGX/KES/TZS/RWF)
+- Keep sentences short (under 20 words). No emoji. No fluff.
+- Include at least one numbered step-by-step guide section`;
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  const response = await fetchWithRetry(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -259,6 +324,15 @@ function escapeHtml(s: string): string {
     .replace(/>/g, '&gt;');
 }
 
+function slugifyId(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
 function inlineMd(s: string): string {
   // Bold **x**
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
@@ -299,22 +373,28 @@ export function markdownToHtml(md: string): string {
       continue;
     }
 
-    // Headings
+    // Headings with anchor IDs
     if (trimmed.startsWith('### ')) {
       closeList();
-      out.push(`<h3>${inlineMd(escapeHtml(trimmed.slice(4)))}</h3>`);
+      const text = trimmed.slice(4);
+      const id = slugifyId(text);
+      out.push(`<h3 id="${id}">${inlineMd(escapeHtml(text))}</h3>`);
       i++;
       continue;
     }
     if (trimmed.startsWith('## ')) {
       closeList();
-      out.push(`<h2>${inlineMd(escapeHtml(trimmed.slice(3)))}</h2>`);
+      const text = trimmed.slice(3);
+      const id = slugifyId(text);
+      out.push(`<h2 id="${id}">${inlineMd(escapeHtml(text))}</h2>`);
       i++;
       continue;
     }
     if (trimmed.startsWith('# ')) {
       closeList();
-      out.push(`<h2>${inlineMd(escapeHtml(trimmed.slice(2)))}</h2>`);
+      const text = trimmed.slice(2);
+      const id = slugifyId(text);
+      out.push(`<h2 id="${id}">${inlineMd(escapeHtml(text))}</h2>`);
       i++;
       continue;
     }
@@ -370,59 +450,10 @@ export function markdownToHtml(md: string): string {
   return out.join('\n');
 }
 
-// ---------- Cover image: REAL web image search via z-ai CLI ----------
+// ---------- Cover image ----------
 
-const execFileAsync = promisify(execFile);
-
-/**
- * Search the web for a real photo matching the post topic.
- * Uses z-ai image-search CLI (ZAI in-house image search service).
- * Returns the first landscape-oriented result's stable OSS URL.
- */
 export async function searchRealImage(query: string): Promise<string | null> {
-  try {
-    // Build a clean natural-language query
-    const cleanQuery = `${query} Africa digital creator`.slice(0, 200);
-
-    const { stdout } = await execFileAsync(
-      'z-ai',
-      ['image-search', '-q', cleanQuery, '--count', '5', '--gl', 'us', '--no-rank'],
-      { timeout: 120000, maxBuffer: 10 * 1024 * 1024 }
-    );
-
-    // Extract the JSON object from stdout (CLI prints status lines before JSON)
-    const jsonStart = stdout.indexOf('{');
-    if (jsonStart === -1) return null;
-    // Find matching closing brace
-    let depth = 0;
-    let jsonEnd = -1;
-    for (let i = jsonStart; i < stdout.length; i++) {
-      if (stdout[i] === '{') depth++;
-      else if (stdout[i] === '}') {
-        depth--;
-        if (depth === 0) { jsonEnd = i; break; }
-      }
-    }
-    if (jsonEnd === -1) return null;
-
-    const data = JSON.parse(stdout.slice(jsonStart, jsonEnd + 1));
-    if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
-      return null;
-    }
-
-    // Prefer landscape (width >= height) for blog cover
-    const isLandscape = (r: any) => {
-      const w = parseInt(String(r.original_width || '').replace('px', ''), 10);
-      const h = parseInt(String(r.original_height || '').replace('px', ''), 10);
-      return w > 0 && h > 0 && w >= h;
-    };
-    const landscape = data.results.filter(isLandscape);
-    const pick = landscape[0] || data.results[0];
-    return pick.original_url || null;
-  } catch (err: any) {
-    console.error('[searchRealImage] failed:', err?.message || err);
-    return null;
-  }
+  return null;
 }
 
 /**

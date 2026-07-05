@@ -11,12 +11,12 @@
  * still calls it, but it returns early when `VERCEL=1` is set).
  */
 
-import cron from 'node-cron';
+import cron, { type ScheduledTask } from 'node-cron';
 import { db } from '@/lib/db';
 import { pickNextKeyword, generateAndStorePost } from '@/lib/ai-engine';
 import { SCHEDULER } from '@/lib/site-config';
 
-let cronTask: cron.ScheduledTask | null = null;
+let cronTask: ScheduledTask | null = null;
 let currentSchedule: string | null = null;
 
 export function getSchedulerStatus() {

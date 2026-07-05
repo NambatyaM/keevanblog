@@ -1,10 +1,16 @@
 /**
  * Next.js instrumentation hook — runs once when the server boots.
- * Used to start the auto-blog scheduler.
+ * Validates required env vars and starts the auto-blog scheduler.
  */
 export async function register() {
-  // Only run on server
   if (typeof window !== 'undefined') return;
+
+  // Validate required env vars at startup
+  const required = ['DATABASE_URL', 'ZAI_API_KEY'] as const;
+  const missing = required.filter((key) => !process.env[key]);
+  if (missing.length > 0) {
+    console.error(`[instrumentation] Missing required env vars: ${missing.join(', ')}`);
+  }
 
   try {
     const { initSchedulerIfEnabled } = await import('@/lib/scheduler');
