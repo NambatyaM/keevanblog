@@ -1,0 +1,73 @@
+// Keevan Blog — AI auto-blog for keevanstore.in marketing
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  title         String
+  excerpt       String
+  content       String   // HTML body
+  markdown      String   // raw markdown source
+  coverImage    String?
+  coverAlt      String?
+  category      String
+  tags          String   // comma-separated
+  keywords      String   // comma-separated SEO keywords
+  metaTitle     String
+  metaDescription String
+  focusKeyword  String
+  wordCount     Int      @default(0)
+  readingTime   Int      @default(1) // minutes
+  status        String   @default("published") // draft | published
+  scheduledFor  DateTime?
+  publishedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([status, publishedAt])
+  @@index([category])
+  @@index([slug])
+}
+
+model Keyword {
+  id          String   @id @default(cuid())
+  keyword     String   @unique
+  category    String
+  searchVolume Int     @default(0)
+  difficulty  String   @default("medium") // low | medium | high
+  usedCount   Int      @default(0)
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([category])
+}
+
+model ScheduleLog {
+  id          String   @id @default(cuid())
+  action      String   // generated | published | failed | skipped
+  postSlug    String?
+  message     String?
+  createdAt   DateTime @default(now())
+}
+
+model Setting {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String
+
+  @@index([key])
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("footer")
+  createdAt DateTime @default(now())
+}
