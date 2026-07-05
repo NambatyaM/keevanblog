@@ -13,6 +13,8 @@
 import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
 import { SITE } from '@/lib/site-config';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 
 export type GeneratedPost = {
   title: string;
@@ -361,9 +363,6 @@ export function markdownToHtml(md: string): string {
 }
 
 // ---------- Cover image: REAL web image search via z-ai CLI ----------
-
-import { execFile } from 'child_process';
-import { promisify } from 'util';
 
 const execFileAsync = promisify(execFile);
 
