@@ -280,3 +280,5 @@ Edit `SITE.themeColor` in `src/lib/site-config.ts` (currently `#00854a` matching
 ## License
 
 Proprietary — Keevan Store.
+#   k e e v a n b l o g  
+ 
