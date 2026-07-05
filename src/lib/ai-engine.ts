@@ -15,6 +15,8 @@ import { db } from '@/lib/db';
 import { SITE } from '@/lib/site-config';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
+import { writeFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 export type GeneratedPost = {
   title: string;
@@ -149,6 +151,15 @@ export async function generateArticle(opts: {
 }): Promise<GeneratedPost> {
   const { keyword, category } = opts;
 
+  const configPath = join(process.cwd(), '.z-ai-config');
+  if (!existsSync(configPath)) {
+    const apiKey = process.env.ZAI_API_KEY;
+    if (!apiKey) throw new Error('ZAI_API_KEY env var is required');
+    writeFileSync(configPath, JSON.stringify({
+      baseUrl: process.env.ZAI_API_BASE || 'https://open.bigmodel.cn/api/paas/v4',
+      apiKey,
+    }, null, 2), 'utf-8');
+  }
   const zai = await ZAI.create();
 
   const userPrompt = `Write an SEO-optimized blog post for this focus keyword:
