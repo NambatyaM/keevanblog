@@ -1,0 +1,32 @@
+🚀 Initializing Z-AI SDK...
+🔎 Searching images: "successful African writer celebrating online income 2025"
+✅ Got 3 images
+{
+  "success": true,
+  "query": "successful African writer celebrating online income 2025",
+  "count": 3,
+  "ranked": false,
+  "results": [
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/b7e871826c3c.png",
+      "caption": "",
+      "source": "the United Nations",
+      "original_width": "1444px",
+      "original_height": "1080px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/b9aeb4c45565.jpg",
+      "caption": "",
+      "source": "Daily Sabah",
+      "original_width": "2712px",
+      "original_height": "1808px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/f5cc45f92a17.jpg",
+      "caption": "",
+      "source": "Ovation Magazine",
+      "original_width": "1160px",
+      "original_height": "1450px"
+    }
+  ]
+}

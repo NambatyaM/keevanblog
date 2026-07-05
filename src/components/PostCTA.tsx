@@ -44,6 +44,8 @@ export function PostCTA() {
             </ul>
             <a
               href={SITE.links.signUp}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-white font-semibold px-5 py-2.5 rounded-lg hover:opacity-90 transition"
               style={{ backgroundColor: SITE.themeColor }}
             >

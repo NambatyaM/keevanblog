@@ -355,23 +355,70 @@ export function markdownToHtml(md: string): string {
   return out.join('\n');
 }
 
-// ---------- Thumbnail generation ----------
+// ---------- Cover image: REAL web image search via z-ai CLI ----------
 
-export async function generateThumbnail(prompt: string): Promise<string | null> {
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+
+const execFileAsync = promisify(execFile);
+
+/**
+ * Search the web for a real photo matching the post topic.
+ * Uses z-ai image-search CLI (ZAI in-house image search service).
+ * Returns the first landscape-oriented result's stable OSS URL.
+ */
+export async function searchRealImage(query: string): Promise<string | null> {
   try {
-    const zai = await ZAI.create();
-    const result = await zai.images.generations.create({
-      model: 'dall-e-3',
-      prompt: `${prompt}. Flat vector illustration, vibrant colors, modern, clean lines, no text, 1200x630 ratio`,
-      n: 1,
-      size: '1024x576',
-    });
-    const url = result.data?.[0]?.url;
-    return url ?? null;
-  } catch (err) {
-    console.error('[generateThumbnail] failed:', err);
+    // Build a clean natural-language query
+    const cleanQuery = `${query} Africa digital creator`.slice(0, 200);
+
+    const { stdout } = await execFileAsync(
+      'z-ai',
+      ['image-search', '-q', cleanQuery, '--count', '5', '--gl', 'us', '--no-rank'],
+      { timeout: 120000, maxBuffer: 10 * 1024 * 1024 }
+    );
+
+    // Extract the JSON object from stdout (CLI prints status lines before JSON)
+    const jsonStart = stdout.indexOf('{');
+    if (jsonStart === -1) return null;
+    // Find matching closing brace
+    let depth = 0;
+    let jsonEnd = -1;
+    for (let i = jsonStart; i < stdout.length; i++) {
+      if (stdout[i] === '{') depth++;
+      else if (stdout[i] === '}') {
+        depth--;
+        if (depth === 0) { jsonEnd = i; break; }
+      }
+    }
+    if (jsonEnd === -1) return null;
+
+    const data = JSON.parse(stdout.slice(jsonStart, jsonEnd + 1));
+    if (!data.success || !Array.isArray(data.results) || data.results.length === 0) {
+      return null;
+    }
+
+    // Prefer landscape (width >= height) for blog cover
+    const isLandscape = (r: any) => {
+      const w = parseInt(String(r.original_width || '').replace('px', ''), 10);
+      const h = parseInt(String(r.original_height || '').replace('px', ''), 10);
+      return w > 0 && h > 0 && w >= h;
+    };
+    const landscape = data.results.filter(isLandscape);
+    const pick = landscape[0] || data.results[0];
+    return pick.original_url || null;
+  } catch (err: any) {
+    console.error('[searchRealImage] failed:', err?.message || err);
     return null;
   }
+}
+
+/**
+ * Legacy alias kept for backward compat — now searches real images instead
+ * of generating AI thumbnails.
+ */
+export async function generateThumbnail(prompt: string): Promise<string | null> {
+  return searchRealImage(prompt);
 }
 
 // ---------- Top-level orchestrator ----------
@@ -384,10 +431,11 @@ export async function generateAndStorePost(opts: {
   try {
     const generated = await generateArticle(opts);
 
-    // Try to generate cover image (non-blocking — we save post even if image fails)
+    // Search the web for a real cover image (non-blocking — we save post even if image fails)
     let coverImage: string | null = null;
     if (!opts.skipImage) {
-      coverImage = await generateThumbnail(generated.coverImagePrompt);
+      // Use focus keyword as the search query for the most relevant real image
+      coverImage = await searchRealImage(generated.focusKeyword);
     }
 
     const post = await db.post.create({

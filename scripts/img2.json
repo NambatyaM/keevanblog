@@ -1,0 +1,32 @@
+🚀 Initializing Z-AI SDK...
+🔎 Searching images: "African creator marketing on WhatsApp smartphone"
+✅ Got 3 images
+{
+  "success": true,
+  "query": "African creator marketing on WhatsApp smartphone",
+  "count": 3,
+  "ranked": false,
+  "results": [
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/c8f4b33dbb33.png",
+      "caption": "",
+      "source": "ActiveCampaign",
+      "original_width": "1600px",
+      "original_height": "1600px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/cbafdf98758e.jpg",
+      "caption": "",
+      "source": "Smartphone Free Childhood",
+      "original_width": "2480px",
+      "original_height": "2480px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/b1ff42f03df3.jpg",
+      "caption": "",
+      "source": "LinkedIn",
+      "original_width": "1279px",
+      "original_height": "720px"
+    }
+  ]
+}

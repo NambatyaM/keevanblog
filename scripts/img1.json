@@ -1,0 +1,32 @@
+🚀 Initializing Z-AI SDK...
+🔎 Searching images: "Ugandan author writing ebook on laptop in Kampala"
+✅ Got 3 images
+{
+  "success": true,
+  "query": "Ugandan author writing ebook on laptop in Kampala",
+  "count": 3,
+  "ranked": false,
+  "results": [
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/eb346d8b0b1e.jpg",
+      "caption": "",
+      "source": "eBay",
+      "original_width": "900px",
+      "original_height": "1200px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/d8d138894bbc.jpg",
+      "caption": "",
+      "source": "Paperlike",
+      "original_width": "1500px",
+      "original_height": "994px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/d5b3861bb09b.jpg",
+      "caption": "",
+      "source": "eBay",
+      "original_width": "900px",
+      "original_height": "1200px"
+    }
+  ]
+}

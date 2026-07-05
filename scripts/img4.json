@@ -1,0 +1,32 @@
+🚀 Initializing Z-AI SDK...
+🔎 Searching images: "free ebook creation tools laptop writing software"
+✅ Got 3 images
+{
+  "success": true,
+  "query": "free ebook creation tools laptop writing software",
+  "count": 3,
+  "ranked": false,
+  "results": [
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/0033cffc53b4.jpeg",
+      "caption": "",
+      "source": "Jasper.ai",
+      "original_width": "6016px",
+      "original_height": "4016px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/84264a76f634.jpg",
+      "caption": "",
+      "source": "Visme",
+      "original_width": "1200px",
+      "original_height": "672px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/d59c6ab0c45b.png",
+      "caption": "",
+      "source": "The Write Practice",
+      "original_width": "1003px",
+      "original_height": "895px"
+    }
+  ]
+}

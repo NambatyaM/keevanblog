@@ -9,6 +9,7 @@ import { ArrowLeft, Calendar, Clock, Tag, Store } from 'lucide-react';
 import { PostCTA } from '@/components/PostCTA';
 import { PostShare } from '@/components/PostShare';
 import { RelatedPosts } from '@/components/RelatedPosts';
+import { AdsterraAd } from '@/components/AdsterraAd';
 import { Footer } from '@/components/Footer';
 import { Header } from '@/components/Header';
 
@@ -150,6 +151,7 @@ export default async function PostPage({ params }: Params) {
               className="w-full aspect-[1200/630] object-cover rounded-xl mb-8"
               width={1200}
               height={630}
+              loading="eager"
             />
           )}
 
@@ -167,6 +169,9 @@ export default async function PostPage({ params }: Params) {
               prose-hr:my-8 prose-hr:border-border"
             dangerouslySetInnerHTML={{ __html: articleHtml }}
           />
+
+          {/* Adsterra native ad — mid-article (after body, before tags) */}
+          <AdsterraAd className="my-10" />
 
           {post.tags && (
             <div className="flex flex-wrap gap-2 mt-10 pt-6 border-t">

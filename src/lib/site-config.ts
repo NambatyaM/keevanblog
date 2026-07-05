@@ -19,6 +19,8 @@ export const SITE = {
   twitterHandle: '@keevanstore',
   contactEmail: 'support@keevanstore.in',
   whatsapp: '+256768345905',
+  // WhatsApp group invite — weekly updates
+  whatsappGroupUrl: 'https://chat.whatsapp.com/EDhvsojqBpsKNvkqxf2jK3',
   // Social/utility links
   links: {
     mainSite: 'https://keevanstore.in',
@@ -28,7 +30,21 @@ export const SITE = {
     about: 'https://keevanstore.in/about',
     faq: 'https://keevanstore.in/faq',
     contact: 'https://keevanstore.in/contact',
+    // External legal/policy pages on main site
+    terms: 'https://keevanstore.in/terms',
+    privacy: 'https://keevanstore.in/privacy',
+    refund: 'https://keevanstore.in/refund',
   },
+} as const;
+
+/**
+ * Adsterra native ad configuration.
+ * The script + container pair is loaded once per page via the AdsterraAd component.
+ */
+export const ADSTERRA = {
+  scriptSrc:
+    'https://pl30223379.effectivecpmnetwork.com/7a25ed031852608cea88f1b07d4e7d5d/invoke.js',
+  containerId: 'container-7a25ed031852608cea88f1b07d4e7d5d',
 } as const;
 
 export const NAV_LINKS = [
@@ -76,30 +92,6 @@ export const CATEGORIES = [
 export const MONETIZATION = {
   // Google AdSense publisher ID (placeholder — replace after approval)
   adsensePublisherId: 'ca-pub-XXXXXXXXXXXXXXXX',
-  // Ad slot IDs (placeholders)
-  adsenseSlots: {
-    header: '1111111111',
-    inArticle: '2222222222',
-    sidebar: '3333333333',
-  },
-  // Affiliate programs we recommend (placeholders — replace with real IDs after sign-up)
-  affiliateLinks: [
-    {
-      label: 'Start your free Keevan Store',
-      url: 'https://keevanstore.in/signup',
-      type: 'internal',
-    },
-    {
-      label: 'Hostinger Web Hosting (affiliate)',
-      url: 'https://hostinger.com?ref=keevanblog',
-      type: 'external',
-    },
-    {
-      label: 'Canva Pro for Creators (affiliate)',
-      url: 'https://canva.com?ref=keevanblog',
-      type: 'external',
-    },
-  ],
 } as const;
 
 export const SCHEDULER = {

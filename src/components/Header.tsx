@@ -34,13 +34,15 @@ export function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3">
-          <Link
+          <a
             href={SITE.links.signUp}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-sm font-semibold text-white px-4 py-2 rounded-lg hover:opacity-90 transition"
             style={{ backgroundColor: SITE.themeColor }}
           >
             Start Selling Free
-          </Link>
+          </a>
         </div>
 
         <button
@@ -66,14 +68,16 @@ export function Header() {
                 {l.label}
               </Link>
             ))}
-            <Link
+            <a
               href={SITE.links.signUp}
+              target="_blank"
+              rel="noopener noreferrer"
               onClick={() => setOpen(false)}
               className="mt-2 px-3 py-2 text-sm font-semibold text-white rounded-md text-center"
               style={{ backgroundColor: SITE.themeColor }}
             >
               Start Selling Free
-            </Link>
+            </a>
           </nav>
         </div>
       )}

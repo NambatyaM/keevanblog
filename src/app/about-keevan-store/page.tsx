@@ -20,6 +20,7 @@ import {
   Smartphone,
   TrendingUp,
 } from 'lucide-react';
+import { AdsterraAd } from '@/components/AdsterraAd';
 
 export const runtime = 'nodejs';
 
@@ -181,12 +182,16 @@ export default function AboutKeevanStorePage() {
               <div className="flex flex-wrap gap-3">
                 <a
                   href={SITE.links.signUp}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-white text-[#00854a] font-semibold px-6 py-3 rounded-lg hover:bg-white/95 transition shadow-lg"
                 >
                   Create Your Free Store <ArrowRight className="w-4 h-4" />
                 </a>
                 <a
                   href={SITE.links.features}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 bg-white/15 backdrop-blur border border-white/40 text-white font-semibold px-6 py-3 rounded-lg hover:bg-white/25 transition"
                 >
                   See how it works
@@ -306,6 +311,8 @@ export default function AboutKeevanStorePage() {
               </div>
               <a
                 href={SITE.links.signUp}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-primary text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary/90 transition mt-8"
               >
                 Create Your Free Store <ArrowRight className="w-4 h-4" />
@@ -338,6 +345,11 @@ export default function AboutKeevanStorePage() {
           </div>
         </section>
 
+        {/* Adsterra native ad before final CTA */}
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+          <AdsterraAd className="py-6" />
+        </div>
+
         {/* Final CTA */}
         <section className="bg-primary text-primary-foreground py-14">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -349,12 +361,16 @@ export default function AboutKeevanStorePage() {
             <div className="flex flex-wrap justify-center gap-3">
               <a
                 href={SITE.links.signUp}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 bg-background text-primary font-semibold px-6 py-3 rounded-lg hover:bg-background/95 transition"
               >
                 Create Your Free Store <ArrowRight className="w-4 h-4" />
               </a>
               <a
                 href={SITE.links.faq}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 border border-primary-foreground/40 text-primary-foreground font-semibold px-6 py-3 rounded-lg hover:bg-primary-foreground/10 transition"
               >
                 Read the FAQ

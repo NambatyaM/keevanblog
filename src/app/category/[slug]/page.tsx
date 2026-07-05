@@ -7,8 +7,9 @@ import { SITE, CATEGORIES } from '@/lib/site-config';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { PostCard } from '@/components/PostCard';
-import { NewsletterCTA } from '@/components/NewsletterCTA';
+import { WhatsAppCTA } from '@/components/WhatsAppCTA';
 import { PostCTA } from '@/components/PostCTA';
+import { AdsterraAd } from '@/components/AdsterraAd';
 import { ArrowRight } from 'lucide-react';
 
 export const runtime = 'nodejs';
@@ -100,21 +101,30 @@ export default async function CategoryPage({ params }: Params) {
           {posts.length === 0 ? (
             <div className="text-center py-16">
               <p className="text-muted-foreground mb-4">No articles in this category yet. Check back soon — new posts are published daily.</p>
-              <Link href={SITE.links.signUp} className="inline-flex items-center gap-2 text-primary font-medium hover:underline">
+              <a
+                href={SITE.links.signUp}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-primary font-medium hover:underline"
+              >
                 Start your free Keevan Store <ArrowRight className="w-4 h-4" />
-              </Link>
+              </a>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {posts.map((p) => (
-                <PostCard key={p.slug} post={p} />
-              ))}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {posts.map((p) => (
+                  <PostCard key={p.slug} post={p} />
+                ))}
+              </div>
+              {/* Adsterra native ad after post grid */}
+              <AdsterraAd className="mt-10" />
+            </>
           )}
         </section>
 
         <PostCTA />
-        <NewsletterCTA />
+        <WhatsAppCTA />
       </main>
       <Footer />
     </div>

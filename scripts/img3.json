@@ -1,0 +1,32 @@
+🚀 Initializing Z-AI SDK...
+🔎 Searching images: "African entrepreneur earning money online with digital products"
+✅ Got 3 images
+{
+  "success": true,
+  "query": "African entrepreneur earning money online with digital products",
+  "count": 3,
+  "ranked": false,
+  "results": [
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/35838069dc36.webp",
+      "caption": "",
+      "source": "Whop",
+      "original_width": "1920px",
+      "original_height": "1080px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/17671de580a6.jpg",
+      "caption": "",
+      "source": "Shopify",
+      "original_width": "1280px",
+      "original_height": "720px"
+    },
+    {
+      "original_url": "https://sfile.chatglm.cn/images-ppt/20314813c579.jpg",
+      "caption": "",
+      "source": "YouTube",
+      "original_width": "1280px",
+      "original_height": "720px"
+    }
+  ]
+}

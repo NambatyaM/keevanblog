@@ -6,7 +6,8 @@
  *  - Latest published posts grid
  *  - Category showcase
  *  - Featured marketing section promoting keevanstore.in
- *  - Newsletter capture
+ *  - WhatsApp group invite
+ *  - Adsterra native ad unit
  *  - Floating "Admin" button to open the AdminDashboard modal
  */
 import Link from 'next/link';
@@ -16,7 +17,8 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { PostCard } from '@/components/PostCard';
 import { PostCTA } from '@/components/PostCTA';
-import { NewsletterCTA } from '@/components/NewsletterCTA';
+import { WhatsAppCTA } from '@/components/WhatsAppCTA';
+import { AdsterraAd } from '@/components/AdsterraAd';
 import { HomeAdminTrigger } from '@/components/HomeAdminTrigger';
 import { ArrowRight, Sparkles, TrendingUp, Store, Globe2, Wallet } from 'lucide-react';
 
@@ -103,7 +105,7 @@ export default async function Home() {
                 Actionable guides on selling e-books, PDFs, templates, and digital downloads across Uganda,
                 Kenya, Tanzania, and Rwanda. Built for creators who want to earn from their knowledge —
                 powered by{' '}
-                <a href={SITE.mainSiteUrl} className="font-semibold text-foreground underline underline-offset-4 hover:opacity-80">
+                <a href={SITE.mainSiteUrl} target="_blank" rel="noopener noreferrer" className="font-semibold text-foreground underline underline-offset-4 hover:opacity-80">
                   keevanstore.in
                 </a>
                 .
@@ -111,6 +113,8 @@ export default async function Home() {
               <div className="flex flex-wrap gap-3">
                 <a
                   href={SITE.links.signUp}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 text-white font-semibold px-6 py-3 rounded-lg shadow-md hover:opacity-90 transition"
                   style={{ backgroundColor: SITE.themeColor }}
                 >
@@ -171,6 +175,11 @@ export default async function Home() {
           )}
         </section>
 
+        {/* Adsterra native ad — between latest posts and categories */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <AdsterraAd className="py-4" />
+        </div>
+
         {/* Categories */}
         <section className="bg-muted/30 border-y py-14">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
@@ -203,8 +212,8 @@ export default async function Home() {
         {/* Featured marketing block for keevanstore.in */}
         <PostCTA />
 
-        {/* Newsletter */}
-        <NewsletterCTA />
+        {/* WhatsApp group invite (replaces newsletter) */}
+        <WhatsAppCTA />
       </main>
       <Footer />
     </div>
