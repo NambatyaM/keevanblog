@@ -1,22 +1,17 @@
 /**
  * AI engine for the auto-blog.
  *
- * Uses z-ai-web-dev-sdk (free, no usage cap on this sandbox) to:
+ * Uses Z.AI API (free, no usage cap on this sandbox) to:
  *  1. Generate a SEO-optimized blog post (1500-2500 words) for a target keyword
  *  2. Generate AI thumbnail image for the post
  *
  * All output is post-processed into HTML + markdown + meta fields and saved to DB.
- *
- * CRITICAL: z-ai-web-dev-sdk MUST run server-side only.
  */
 
-import ZAI from 'z-ai-web-dev-sdk';
 import { db } from '@/lib/db';
 import { SITE } from '@/lib/site-config';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import { writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
 
 export type GeneratedPost = {
   title: string;
@@ -151,16 +146,9 @@ export async function generateArticle(opts: {
 }): Promise<GeneratedPost> {
   const { keyword, category } = opts;
 
-  const configPath = join(process.cwd(), '.z-ai-config');
-  if (!existsSync(configPath)) {
-    const apiKey = process.env.ZAI_API_KEY;
-    if (!apiKey) throw new Error('ZAI_API_KEY env var is required');
-    writeFileSync(configPath, JSON.stringify({
-      baseUrl: process.env.ZAI_API_BASE || 'https://open.bigmodel.cn/api/paas/v4',
-      apiKey,
-    }, null, 2), 'utf-8');
-  }
-  const zai = await ZAI.create();
+  const apiKey = process.env.ZAI_API_KEY;
+  if (!apiKey) throw new Error('ZAI_API_KEY env var is required');
+  const baseUrl = process.env.ZAI_API_BASE || 'https://open.bigmodel.cn/api/paas/v4';
 
   const userPrompt = `Write an SEO-optimized blog post for this focus keyword:
 
@@ -189,19 +177,28 @@ Rules for the markdown:
 - End with a soft CTA linking to https://keevanstore.in/signup
 - Do NOT include the title as # H1 — start with ## Introduction`;
 
-  const completion = await zai.chat.completions.create({
-    // GLM-4.7-Flash: 100% FREE forever (input + output + cached storage all $0)
-    // Good quality (newest 4.x family) + fast responses + concurrency 3.
-    // Override via ZAI_MODEL env var to use paid models if you need higher
-    // quality (e.g. glm-4.6, glm-5.2) — see pricing at https://z.ai/pricing
-    model: process.env.ZAI_MODEL || 'glm-4.7-flash',
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: userPrompt },
-    ],
-    temperature: 0.7,
-    max_tokens: 8000,
+  const response = await fetch(`${baseUrl}/chat/completions`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'X-Z-AI-From': 'Z',
+    },
+    body: JSON.stringify({
+      model: process.env.ZAI_MODEL || 'glm-4.7-flash',
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature: 0.7,
+      max_tokens: 8000,
+    }),
   });
+  if (!response.ok) {
+    const errBody = await response.text();
+    throw new Error(`Z.AI API error ${response.status}: ${errBody}`);
+  }
+  const completion = await response.json();
 
   const raw = completion.choices?.[0]?.message?.content ?? '';
   const parsed = extractJsonBlock(raw);
