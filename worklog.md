@@ -55,3 +55,38 @@ Stage Summary:
 - Production domain: blog.keevanstore.in (configurable in src/lib/site-config.ts)
 - Lint: clean
 - All routes verified via agent-browser
+
+---
+Task ID: production-prep
+Agent: main (Super Z)
+Task: Prep the code for production deployment on Vercel + Turso:
+  - Pin AI engine to glm-4.5 (configurable via ZAI_MODEL env var)
+  - Switch Prisma from SQLite to Turso (libsql driver) with dual-mode (local file OR Turso URL)
+  - Add vercel.json with daily cron schedule
+  - Add GET handler to /api/admin/generate for Vercel Cron
+  - Add .env.example + .env.local + update .gitignore
+  - Add README.md with full deployment instructions
+
+Work Log:
+- Edited ai-engine.ts: added `model: process.env.ZAI_MODEL || 'glm-4.5'` to chat completions call
+- Installed @prisma/adapter-libsql and @libsql/client packages
+- Updated prisma/schema.prisma: removed previewFeatures (deprecated warning), kept provider=sqlite (works for both file + libsql via adapter)
+- Rewrote src/lib/db.ts: dual-mode client that auto-detects DATABASE_URL scheme (file: → local SQLite, libsql:/http:/https: → Turso with libsql adapter). Uses PrismaLibSql adapter (correct casing is PrismaLibSql not PrismaLibSQL)
+- Fixed initial 500 error: export name was PrismaLibSQL, should be PrismaLibSql (lowercase Q)
+- Created vercel.json: { crons: [{ path: "/api/admin/generate?source=cron", schedule: "0 5 * * *" }] } — 05:00 UTC = 08:00 Africa/Kampala
+- Updated /api/admin/generate/route.ts: added GET handler that (1) checks ?source=cron, (2) blocks non-cron GETs in production, (3) checks scheduler.paused setting, (4) picks next keyword, (5) fires generation as background promise, (6) returns 200 immediately. Also added maxDuration=300 for manual generations on Pro/Enterprise plans.
+- Updated scheduler.ts: initSchedulerIfEnabled() is now a no-op when VERCEL=1 or VERCEL_ENV is set (Vercel Cron handles scheduling instead)
+- Updated .gitignore: explicitly exclude .env* but allow .env.example (!.env.example)
+- Created .env.example: documents DATABASE_URL (both local + Turso formats), TURSO_AUTH_TOKEN, ZAI_API_KEY, ZAI_MODEL=glm-4.5, VERCEL env vars (auto-set), optional SITE_URL override
+- Created .env.local: contains the user's actual Z.AI API key for sandbox testing (gitignored; user will rotate before deploy)
+- Created README.md: 250-line comprehensive deployment guide with 7 step-by-step instructions, env var reference table, project structure tree, admin dashboard docs, customization guide (model swap, cron schedule, AdSense, brand colors), and security notes
+- Verified: all 9 routes return 200; ESLint clean; tested GET cron handler end-to-end — returned immediately with triggered=true, generated "Sell Templates Online: East African Creator's Complete Guide" (2238 words) in background within 90s; agent-browser confirms 7 posts visible, 1 Adsterra container, 3 WhatsApp links on homepage
+
+Stage Summary:
+- Code is now Vercel-deploy-ready
+- AI model: GLM-4.5 (10 concurrency, configurable via ZAI_MODEL env var)
+- Database: dual-mode — SQLite file for dev, Turso libsql for prod (auto-detected from DATABASE_URL)
+- Cron: Vercel Cron Jobs triggers /api/admin/generate?source=cron daily at 05:00 UTC (08:00 Kampala)
+- All env vars documented in .env.example and README.md
+- 7 posts now in DB (5 original + 2 cron-triggered test generations, all with real images)
+- Security: .env* gitignored, .env.example has placeholders only, README has security notes section

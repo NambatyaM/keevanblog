@@ -177,6 +177,9 @@ Rules for the markdown:
 - Do NOT include the title as # H1 — start with ## Introduction`;
 
   const completion = await zai.chat.completions.create({
+    // GLM-4.5: 10 concurrency, excellent long-form English + JSON instruction following
+    // Override via ZAI_MODEL env var if you want to test other models (e.g. glm-4.6, glm-5.2)
+    model: process.env.ZAI_MODEL || 'glm-4.5',
     messages: [
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: userPrompt },

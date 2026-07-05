@@ -1,12 +1,14 @@
 /**
  * Background scheduler that auto-generates blog posts on a cron schedule.
  *
- * Uses node-cron (works in Next.js long-running dev/prod server process).
- * Schedule is configurable in admin dashboard; defaults to daily at 08:00.
+ * TWO MODES:
+ *  - DEV (this sandbox / `next dev`): uses node-cron to run on a schedule
+ *  - PROD (Vercel): NOT used — Vercel Cron Jobs triggers /api/admin/generate
+ *    instead, because Vercel serverless functions don't have a long-running
+ *    process. The `vercel.json` file at project root configures the cron.
  *
- * IMPORTANT: This module is lazy-initialized when first imported server-side
- * (e.g., from the admin route). In a serverless deployment you'd want
- * to move this to a worker, but for the Next.js dev server it works fine.
+ * On Vercel, `initSchedulerIfEnabled()` is a no-op (the instrumentation hook
+ * still calls it, but it returns early when `VERCEL=1` is set).
  */
 
 import cron from 'node-cron';
@@ -88,8 +90,19 @@ export async function runScheduledGeneration() {
 
 /**
  * Initialize scheduler on server boot. Safe to call multiple times.
+ *
+ * On Vercel (production), this is a no-op — Vercel Cron Jobs handle the
+ * scheduling by hitting /api/admin/generate on a schedule defined in
+ * vercel.json. node-cron can't run on Vercel because there's no
+ * long-running process.
  */
 export async function initSchedulerIfEnabled() {
+  // No-op on Vercel — cron is handled by vercel.json + /api/admin/generate GET handler
+  if (process.env.VERCEL === '1' || process.env.VERCEL_ENV) {
+    console.log('[scheduler] Vercel environment detected — cron handled by Vercel Cron Jobs');
+    return;
+  }
+
   try {
     const pausedSetting = await db.setting.findUnique({ where: { key: 'scheduler.paused' } });
     const paused = pausedSetting?.value === 'true';
