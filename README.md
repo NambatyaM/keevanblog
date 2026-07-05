@@ -115,7 +115,7 @@ curl -X POST http://localhost:3000/api/admin/seed
    | `DATABASE_URL` | `libsql://keevan-blog-xxx.turso.io` |
    | `TURSO_AUTH_TOKEN` | `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9...` |
    | `ZAI_API_KEY` | (your Z.AI API key from https://z.ai) |
-   | `ZAI_MODEL` | `glm-4.5` |
+   | `ZAI_MODEL` | `glm-4.7-flash` (free forever) — or `glm-4.6`/`glm-5.2` for paid higher quality |
 
 5. Click **Deploy**. Wait ~2 minutes.
 
@@ -156,7 +156,7 @@ Visit `https://blog.keevanstore.in` and check:
 | `DATABASE_URL` | ✅ | — | SQLite file path (dev) or Turso libsql URL (prod) |
 | `TURSO_AUTH_TOKEN` | ⚠️ | — | Required when `DATABASE_URL` is a Turso URL |
 | `ZAI_API_KEY` | ✅ | — | API key from https://z.ai → API Keys |
-| `ZAI_MODEL` | ❌ | `glm-4.5` | Z.AI model name. Options: `glm-4.5`, `glm-4.6`, `glm-5.1`, `glm-5.2`, etc. |
+| `ZAI_MODEL` | ❌ | `glm-4.7-flash` | Z.AI model name. Default is the FREE model. See https://z.ai/pricing for paid options. |
 | `VERCEL` | auto | — | Auto-set by Vercel; used to skip node-cron init |
 | `VERCEL_ENV` | auto | — | Auto-set by Vercel |
 
@@ -217,14 +217,27 @@ Click the green button bottom-right of any page, or press `Ctrl+Shift+A`.
 
 ### Change the AI model
 
-Edit `ZAI_MODEL` env var. Options on your Z.AI plan:
+Edit `ZAI_MODEL` env var. Default is `glm-4.7-flash` (100% FREE forever).
+
+**Free models (recommended):**
 
 | Model | Concurrency | Notes |
 |---|---|---|
-| `glm-4.5` (default) | 10 | Best balance for long-form English + JSON |
-| `glm-4.6` | 3 | Newest 4.x, slightly better quality |
-| `glm-5.1` / `glm-5.2` | 10 | Newest generation |
-| `glm-4-plus` | 20 | High-traffic use |
+| `glm-4.7-flash` (default) | 3 | Free, newest 4.x flash, good quality |
+| `glm-4.5-flash` | 2 | Free, older generation |
+
+**Paid models** (see https://z.ai/pricing):
+
+| Model | Concurrency | Input/Output per 1M tokens | Notes |
+|---|---|---|---|
+| `glm-4.5` | 10 | $0.60 / $2.20 | Solid baseline |
+| `glm-4.6` | 3 | $0.60 / $2.20 | Newest 4.x |
+| `glm-4.7` | 2 | $0.60 / $2.20 | Best 4.x quality |
+| `glm-5` | 2 | $1.00 / $3.20 | Newer generation |
+| `glm-5.1` / `glm-5.2` | 10 | $1.40 / $4.40 | Newest generation |
+| `glm-4-plus` | 20 | — | High-traffic use |
+
+For a 1-post/day blog (~3000 input + 2500 output tokens per post), paid models cost ~$0.005/post = ~$0.15/month. Free tier is recommended unless you need maximum quality.
 
 ### Change posting frequency
 
