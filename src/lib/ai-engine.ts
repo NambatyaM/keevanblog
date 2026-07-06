@@ -116,7 +116,7 @@ function extractFieldsByRegex(text: string): any | null {
 
 // ---------- Fetch with retry + timeout ----------
 
-const FETCH_TIMEOUT = 55000; // must fit within Vercel Hobby 60s limit
+const FETCH_TIMEOUT = 58000; // must fit within Vercel Hobby 60s limit
 
 async function fetchWithRetry(url: string, options: RequestInit): Promise<Response> {
   const controller = new AbortController();
@@ -128,7 +128,7 @@ async function fetchWithRetry(url: string, options: RequestInit): Promise<Respon
   } catch (err: any) {
     clearTimeout(timer);
     if (err?.name === 'AbortError') {
-      throw new Error('Z.AI API request timed out after 55s');
+      throw new Error('Z.AI API request timed out (model too slow). Try again later or use a shorter keyword.');
     }
     throw new Error(`Z.AI API network error: ${err?.message || err}`);
   }
@@ -185,7 +185,7 @@ Keevan Store (keevanstore.in) is an East African creator-commerce platform where
    - Never use emoji in the body text
    - Write the way people actually ask questions (for LLM/voice search optimization)
    - Use semantic, natural keywords — do not keyword-stuff
-   - Word count: 2000-2800 words (in-depth content ranks higher)
+   - Word count: 1200-1800 words (concise content that answers quickly)
 
 7. FORMAT:
    - No H1 (title is handled separately)
@@ -208,7 +208,7 @@ export async function generateArticle(opts: {
 
 FOCUS KEYWORD: "${keyword}"
 CATEGORY: ${category}
-TARGET LENGTH: 2000-2800 words
+TARGET LENGTH: 1200-1800 words
 
 Return a JSON object (wrap in \`\`\`json fence). Use plain ASCII quotes. Use \\n for newlines INSIDE string values. Do NOT use real newlines inside string values.
 
@@ -242,13 +242,13 @@ MARKDOWN STRUCTURE RULES:
       'X-Z-AI-From': 'Z',
     },
     body: JSON.stringify({
-      model: process.env.ZAI_MODEL || 'glm-4.7-flash',
+      model: process.env.ZAI_MODEL || 'glm-4-flash',
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.7,
-      max_tokens: 8000,
+      max_tokens: 4096,
     }),
   });
   if (!response.ok) {
