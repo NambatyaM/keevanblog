@@ -16,8 +16,8 @@ import { db } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
-// Allow up to 5 minutes for manual generations (Pro/Enterprise plans support this)
-export const maxDuration = 300;
+// Vercel Hobby caps at 60s; this ensures Vercel doesn't kill the function early
+export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {

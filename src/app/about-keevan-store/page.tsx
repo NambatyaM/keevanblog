@@ -1,6 +1,6 @@
 /**
  * About Keevan Store — dedicated marketing page that promotes keevanstore.in
- * This page does NOT use AI-generated content; it's hand-written marketing copy.
+ * Hand-written marketing copy about Keevan Store.
  * URL: /about-keevan-store
  */
 import Link from 'next/link';

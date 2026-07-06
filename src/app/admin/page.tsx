@@ -30,6 +30,7 @@ export default function AdminDashboardPage() {
   const [postPage, setPostPage] = useState<PostPage | null>(null);
   const [generating, setGenerating] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState('all');
   const PAGE_SIZE = 20;
@@ -61,19 +62,22 @@ export default function AdminDashboardPage() {
     if (deleting) return;
     if (!confirm(`Delete "${title}"?\n\nThis action cannot be undone.`)) return;
     setDeleting(id);
+    setMessage(null);
     fetch(`/api/admin/posts/${id}`, { method: 'DELETE' })
       .then((r) => r.json())
       .then((d) => {
-        if (d.success) loadPosts();
-        else alert(`Delete failed: ${d.error}`);
+        if (d.success) { loadPosts(); setMessage({ type: 'success', text: `Deleted: ${title}` }); }
+        else setMessage({ type: 'error', text: `Delete failed: ${d.error}` });
       })
-      .catch(() => alert('Delete failed'))
+      .catch(() => setMessage({ type: 'error', text: 'Delete failed - network error' }))
       .finally(() => setDeleting(null));
   };
 
   const generatePost = () => {
     if (generating) return;
     setGenerating(true);
+    setMessage(null);
+    setMessage({ type: 'success', text: 'Generating post... (up to 60s)' });
     fetch('/api/admin/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -81,13 +85,16 @@ export default function AdminDashboardPage() {
     })
       .then((r) => r.json())
       .then((d) => {
-        const msg = d.post ? `Published: ${d.post.slug}` : `Error: ${d.error}`;
-        alert(msg);
-        setGenerating(false);
-        loadPosts();
-        loadScheduler();
+        if (d.post) {
+          setMessage({ type: 'success', text: `Published: "${d.post.title}" → /post/${d.post.slug}` });
+          loadPosts();
+          loadScheduler();
+        } else {
+          setMessage({ type: 'error', text: d.error || 'Generation failed' });
+        }
       })
-      .catch(() => setGenerating(false));
+      .catch(() => setMessage({ type: 'error', text: 'Generation request failed' }))
+      .finally(() => setGenerating(false));
   };
 
   if (status !== 'authenticated') return null;
@@ -108,6 +115,19 @@ export default function AdminDashboardPage() {
           Sign out
         </button>
       </div>
+
+      {message && (
+        <div className={`rounded-lg border px-4 py-3 text-sm ${
+          message.type === 'success'
+            ? 'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400'
+            : 'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400'
+        }`}>
+          <div className="flex items-center justify-between">
+            <span>{message.text}</span>
+            <button onClick={() => setMessage(null)} className="ml-2 text-xs opacity-60 hover:opacity-100">dismiss</button>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <div className="rounded-lg border p-6">

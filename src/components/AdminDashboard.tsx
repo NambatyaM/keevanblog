@@ -256,7 +256,7 @@ export function AdminDashboard({ open, onClose }: { open: boolean; onClose: () =
                 </button>
               </div>
               <div className="text-xs text-muted-foreground bg-muted/40 p-3 rounded-lg">
-                Each generation takes ~30-90 seconds (AI writes 1500-2500 words + generates cover image).
+                Each generation takes ~30-90 seconds to write, format, and publish.
                 The post is published immediately and appears on the homepage + sitemap.
               </div>
             </div>
@@ -325,7 +325,7 @@ export function AdminDashboard({ open, onClose }: { open: boolean; onClose: () =
                 <h3 className="text-base font-semibold mb-1">Auto-post scheduler</h3>
                 <p className="text-sm text-muted-foreground">
                   The scheduler runs as a node-cron task inside the Next.js server. It picks one keyword
-                  per run and auto-generates + publishes a post. Timezone: Africa/Kampala.
+                   per run and generates + publishes a post. Timezone: Africa/Kampala.
                 </p>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

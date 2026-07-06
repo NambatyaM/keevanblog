@@ -1,5 +1,5 @@
 /**
- * Seed keyword bank for the auto-blog.
+ * Seed keyword bank for the blog content generator.
  * These are 60+ long-tail, high-intent keywords with clear commercial angle,
  * mapped to blog categories. The scheduler picks one at random per run.
  */

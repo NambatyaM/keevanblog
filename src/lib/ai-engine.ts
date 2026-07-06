@@ -116,35 +116,22 @@ function extractFieldsByRegex(text: string): any | null {
 
 // ---------- Fetch with retry + timeout ----------
 
-async function fetchWithRetry(url: string, options: RequestInit, retries = 5): Promise<Response> {
-  const timeoutMs = 120000;
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const response = await fetch(url, { ...options, signal: controller.signal });
-      clearTimeout(timer);
-      if (response.ok) return response;
-      // 429 = rate limited — wait much longer (30s, 60s, 120s...)
-      if (response.status === 429) {
-        if (attempt >= retries) return response;
-        const delay = 30000 * Math.pow(2, attempt);
-        console.warn(`[z-ai] 429 rate limited — retrying in ${delay/1000}s (attempt ${attempt + 1}/${retries})`);
-        await new Promise((r) => setTimeout(r, delay));
-        continue;
-      }
-      if (attempt >= retries) return response;
-      // Other server errors (5xx) — exponential backoff
-      await new Promise((r) => setTimeout(r, 2000 * Math.pow(2, attempt)));
-    } catch (err: any) {
-      clearTimeout(timer);
-      if (attempt >= retries) throw err;
-      const delay = 2000 * Math.pow(2, attempt);
-      console.warn(`[z-ai] fetch error (${err?.name || 'network'}) — retrying in ${delay/1000}s (attempt ${attempt + 1}/${retries})`);
-      await new Promise((r) => setTimeout(r, delay));
+const FETCH_TIMEOUT = 55000; // must fit within Vercel Hobby 60s limit
+
+async function fetchWithRetry(url: string, options: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return response;
+  } catch (err: any) {
+    clearTimeout(timer);
+    if (err?.name === 'AbortError') {
+      throw new Error('Z.AI API request timed out after 55s');
     }
+    throw new Error(`Z.AI API network error: ${err?.message || err}`);
   }
-  throw new Error('fetchWithRetry: all attempts exhausted');
 }
 
 // ---------- Article generation ----------

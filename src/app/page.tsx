@@ -160,7 +160,7 @@ export default async function Home() {
 
           {latestPosts.length === 0 ? (
             <div className="text-center py-16 border rounded-xl bg-muted/30">
-              <p className="text-muted-foreground mb-3">No articles yet — the auto-blog is warming up.</p>
+              <p className="text-muted-foreground mb-3">No articles yet — fresh guides are being prepared.</p>
               <p className="text-xs text-muted-foreground">Check back soon for fresh guides on selling digital products in East Africa.</p>
             </div>
           ) : (

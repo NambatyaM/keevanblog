@@ -1,6 +1,6 @@
 /**
  * Next.js instrumentation hook — runs once when the server boots.
- * Validates required env vars and starts the auto-blog scheduler.
+ * Validates required env vars and starts the scheduler.
  */
 export async function register() {
   if (typeof window !== 'undefined') return;

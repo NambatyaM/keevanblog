@@ -57,3 +57,5 @@ server.log
 # libsql/turso generated files
 /auth
 /auth-wal
+.vercel
+.env*
