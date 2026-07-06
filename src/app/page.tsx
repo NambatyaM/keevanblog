@@ -8,7 +8,6 @@
  *  - Featured marketing section promoting keevanstore.in
  *  - WhatsApp group invite
  *  - Adsterra native ad unit
- *  - Floating "Admin" button to open the AdminDashboard modal
  */
 import Link from 'next/link';
 import { db } from '@/lib/db';
@@ -19,7 +18,6 @@ import { PostCard } from '@/components/PostCard';
 import { PostCTA } from '@/components/PostCTA';
 import { WhatsAppCTA } from '@/components/WhatsAppCTA';
 import { AdsterraAd } from '@/components/AdsterraAd';
-import { HomeAdminTrigger } from '@/components/HomeAdminTrigger';
 import { ArrowRight, Sparkles, TrendingUp, Store, Globe2, Wallet } from 'lucide-react';
 
 export const runtime = 'nodejs';
@@ -83,7 +81,6 @@ export default async function Home() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
 
       <Header />
-      <HomeAdminTrigger />
       <main className="flex-1">
         {/* Hero */}
         <section
@@ -164,7 +161,7 @@ export default async function Home() {
           {latestPosts.length === 0 ? (
             <div className="text-center py-16 border rounded-xl bg-muted/30">
               <p className="text-muted-foreground mb-3">No articles yet — the auto-blog is warming up.</p>
-              <p className="text-xs text-muted-foreground">Click the <strong>Admin</strong> button in the bottom-right to generate the first post.</p>
+              <p className="text-xs text-muted-foreground">Check back soon for fresh guides on selling digital products in East Africa.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
