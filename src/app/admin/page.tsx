@@ -29,6 +29,7 @@ export default function AdminDashboardPage() {
   const [schedulerStatus, setSchedulerStatus] = useState<any>(null);
   const [postPage, setPostPage] = useState<PostPage | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState('all');
   const PAGE_SIZE = 20;
@@ -55,6 +56,20 @@ export default function AdminDashboardPage() {
     loadScheduler();
     loadPosts();
   }, [loadScheduler, loadPosts]);
+
+  const deletePost = (id: string, title: string) => {
+    if (deleting) return;
+    if (!confirm(`Delete "${title}"?\n\nThis action cannot be undone.`)) return;
+    setDeleting(id);
+    fetch(`/api/admin/posts/${id}`, { method: 'DELETE' })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success) loadPosts();
+        else alert(`Delete failed: ${d.error}`);
+      })
+      .catch(() => alert('Delete failed'))
+      .finally(() => setDeleting(null));
+  };
 
   const generatePost = () => {
     if (generating) return;
@@ -210,7 +225,8 @@ export default function AdminDashboardPage() {
                     <th className="pb-2 pr-4 font-medium">Category</th>
                     <th className="pb-2 pr-4 font-medium text-right">Words</th>
                     <th className="pb-2 pr-4 font-medium">Status</th>
-                    <th className="pb-2 font-medium">Date</th>
+                    <th className="pb-2 pr-4 font-medium">Date</th>
+                    <th className="pb-2 font-medium text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -239,6 +255,15 @@ export default function AdminDashboardPage() {
                       </td>
                       <td className="py-2 text-muted-foreground">
                         {new Date(p.publishedAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-2 text-right">
+                        <button
+                          onClick={() => deletePost(p.id, p.title)}
+                          disabled={deleting === p.id}
+                          className="rounded-md bg-red-500/10 px-2 py-1 text-xs font-medium text-red-600 hover:bg-red-500/20 disabled:opacity-30"
+                        >
+                          {deleting === p.id ? '...' : 'Delete'}
+                        </button>
                       </td>
                     </tr>
                   ))}
